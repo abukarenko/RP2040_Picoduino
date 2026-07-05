@@ -7,4 +7,5 @@
 .DS_Store
 ._*
 __MACOSX/
+__pycache__/
 esp8285_backup_*.bin

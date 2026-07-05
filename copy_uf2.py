@@ -13,14 +13,35 @@ except ImportError:
     serial = None
 
 
-COM_PORT = "COM7"
+def get_monitor_port(env):
+    port = env.GetProjectOption("monitor_port", "")
+    if port:
+        return port
+
+    port = env.GetProjectOption("upload_port", "")
+    if port:
+        return port
+
+    return None
 
 
-def find_rp2_drive():
+def list_drives():
+    drives = set()
     for letter in string.ascii_uppercase:
         drive = f"{letter}:\\"
-        info = os.path.join(drive, "INFO_UF2.TXT")
-        if os.path.exists(info):
+        if os.path.exists(drive):
+            drives.add(drive)
+    return drives
+
+
+def is_uf2_drive(drive):
+    return os.path.exists(os.path.join(drive, "INFO_UF2.TXT"))
+
+
+def find_uf2_drive(exclude=None):
+    exclude = exclude or set()
+    for drive in sorted(list_drives() - exclude):
+        if is_uf2_drive(drive):
             return drive
     return None
 
@@ -43,15 +64,21 @@ def reset_to_bootsel(port):
         print(f"Reset failed: {e}")
 
 
-def wait_for_rp2_drive(timeout_sec=10):
-    print("Waiting for RPI-RP2 disk...")
+def wait_for_new_uf2_drive(before_drives, timeout_sec=10):
+    print("Waiting for a new UF2 disk...")
 
     start = time.time()
     while time.time() - start < timeout_sec:
-        drive = find_rp2_drive()
+        drive = find_uf2_drive(exclude=before_drives)
         if drive:
             return drive
-        time.sleep(0.5)
+
+        new_drives = sorted(list_drives() - before_drives)
+        for new_drive in new_drives:
+            if is_uf2_drive(new_drive):
+                return new_drive
+
+        time.sleep(0.25)
 
     return None
 
@@ -66,23 +93,30 @@ def copy_uf2_file(env, use_auto_reset):
         print("UF2 file not found")
         return
 
-    drive = find_rp2_drive()
+    before_drives = list_drives()
+    drive = find_uf2_drive()
     if not drive and use_auto_reset:
-        reset_to_bootsel(COM_PORT)
-        drive = wait_for_rp2_drive(10)
+        port = get_monitor_port(env)
+        if not port:
+            print("monitor_port is not set in platformio.ini")
+            print("Set monitor_port or hold BOOTSEL manually and run: pio run -t copyuf2")
+            return
+
+        reset_to_bootsel(port)
+        drive = wait_for_new_uf2_drive(before_drives, 10)
     elif not drive:
-        print("RPI-RP2 disk not found.")
+        print("UF2 disk not found.")
         print("Hold BOOTSEL, press RESET, then run: pio run -t copyuf2")
         return
     else:
-        print(f"RPI-RP2 already mounted: {drive}")
+        print(f"UF2 disk already mounted: {drive}")
 
     if not drive:
-        print("RPI-RP2 disk not found.")
+        print("New UF2 disk not found.")
         print("Press BOOTSEL manually and run: pio run -t uploaduf2")
         return
 
-    print(f"RPI-RP2 found: {drive}")
+    print(f"UF2 disk found: {drive}")
     print(f"Copying {uf2_path} -> {drive}")
 
     shutil.copy(uf2_path, drive)
@@ -109,7 +143,7 @@ env.AddCustomTarget(
     None,
     copy_uf2,
     title="Upload existing UF2",
-    description="Copy the already built UF2 file to the RPI-RP2 bootloader drive without rebuilding",
+    description="Copy the already built UF2 file to the bootloader UF2 drive without rebuilding",
 )  # type: ignore[name-defined]
 
 env.AddCustomTarget(
@@ -117,5 +151,5 @@ env.AddCustomTarget(
     None,
     copy_uf2_no_reset,
     title="Copy existing UF2",
-    description="Copy the already built UF2 file to an already mounted RPI-RP2 drive without rebuilding or touching COM",
+    description="Copy the already built UF2 file to an already mounted UF2 drive without rebuilding or touching COM",
 )  # type: ignore[name-defined]
