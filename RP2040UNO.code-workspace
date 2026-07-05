@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../RP2040UNO"
+		},
+		{
+			"name": "PicoDuino_2",
+			"path": "."
+		}
+	],
+	"settings": {
+		"stm32cube-ide-clangd.path": "cube"
+	}
+}
