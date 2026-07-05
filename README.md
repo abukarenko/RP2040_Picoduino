@@ -11,6 +11,8 @@ The project currently contains a simple resistive touch paint program in
 
 - `lib/PicoDuinoLCD` - ST7789V 8-bit parallel LCD driver for the measured
   PicoDuino UNO pin map.
+- `lib/PicoDuinoLCD35` - 3.5 inch 320x480 parallel LCD driver for the same
+  PicoDuino UNO pin map, using an ILI9486-style initialization.
 - `lib/PicoDuinoTouch` - resistive touch reader with the measured 8x8 raw
   calibration table.
 - `lib/PicoDuinoWiFi` - ESP8285/ESP8266 AT-command helper for testing,
@@ -60,6 +62,7 @@ the RP2040 through the USB serial port and copy the generated UF2 to the
 Examples are in `examples/`:
 
 - `examples/lcd_graphics` - basic LCD drawing test.
+- `examples/lcd35_graphics` - 3.5 inch LCD geometry and color-bar test.
 - `examples/touch_paint` - minimal touch paint sketch.
 - `examples/wifi_scan` - ESP AT Wi-Fi scan shown on the TFT.
 

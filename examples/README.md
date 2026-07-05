@@ -7,6 +7,11 @@ libraries from `../../lib`.
 
 Simple ST7789V parallel LCD drawing test.
 
+## lcd35_graphics
+
+3.5 inch 320x480 parallel LCD drawing test. It uses the same PicoDuino UNO
+8-bit pin map and an ILI9486-style initialization sequence.
+
 ## touch_paint
 
 Simple resistive touch paint test with the current 8x8 calibration table.
